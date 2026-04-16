@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مغامرة الإيكو لودج</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green-dark:   #1a3c2a;
+    --green-mid:    #2d6a4f;
+    --green-bright: #40916c;
+    --green-light:  #74c69d;
+    --green-pale:   #d8f3dc;
+    --amber:        #e9a828;
+    --amber-light:  #fdf3d0;
+    --red:          #c0392b;
+    --red-light:    #fce4e1;
+    --white:        #fefdf8;
+    --cream:        #f5f0e8;
+    --text-dark:    #1a2e1d;
+    --text-mid:     #3d5a44;
+    --text-light:   #7a9e7e;
+    --shadow-sm:    0 2px 8px rgba(26,60,42,0.12);
+    --shadow-md:    0 6px 24px rgba(26,60,42,0.18);
+    --shadow-lg:    0 16px 48px rgba(26,60,42,0.25);
+    --radius-sm:    8px;
+    --radius-md:    16px;
+    --radius-lg:    24px;
+    --transition:   0.25s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--green-dark);
+    min-height: 100vh;
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  /* ── Nature Background ── */
+  .bg-layer {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(64,145,108,0.35) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 80% at 0% 100%, rgba(45,106,79,0.3) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 100% 100%, rgba(26,60,42,0.4) 0%, transparent 60%),
+      url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1600&q=80') center/cover no-repeat;
+    filter: brightness(0.45) saturate(1.2);
+  }
+  .bg-overlay {
+    position: fixed; inset: 0; z-index: 0;
+    background: linear-gradient(180deg, rgba(26,60,42,0.5) 0%, rgba(26,60,42,0.7) 100%);
+  }
+
+  /* ── Layout ── */
+  .app { position: relative; z-index: 1; min-height: 100vh; }
+
+  /* ── Intro Screen ── */
+  #introScreen {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 100vh; padding: 2rem;
+    animation: fadeIn 0.8s ease;
+  }
+  .intro-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(116,198,157,0.15);
+    border: 1px solid rgba(116,198,157,0.3);
+    border-radius: 50px; padding: 6px 16px;
+    font-size: 13px; color: var(--green-light);
+    margin-bottom: 1.5rem; letter-spacing: 0.05em;
+  }
+  .intro-title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 900; line-height: 1.2;
+    text-align: center; margin-bottom: 1rem;
+    color: var(--white);
+    text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+  }
+  .intro-title span { color: var(--green-light); }
+  .intro-desc {
+    font-size: 1rem; color: rgba(255,255,255,0.75);
+    text-align: center; max-width: 480px;
+    line-height: 1.8; margin-bottom: 2.5rem;
+  }
+  .intro-stats {
+    display: flex; gap: 2rem; margin-bottom: 2.5rem;
+  }
+  .intro-stat {
+    text-align: center;
+  }
+  .intro-stat-num {
+    font-size: 2rem; font-weight: 900;
+    color: var(--green-light); display: block;
+  }
+  .intro-stat-label {
+    font-size: 12px; color: rgba(255,255,255,0.6);
+    letter-spacing: 0.05em;
+  }
+  .btn-start {
+    background: var(--green-bright);
+    color: var(--white); border: none;
+    padding: 16px 48px; border-radius: 50px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 1.1rem; font-weight: 700;
+    cursor: pointer; transition: var(--transition);
+    box-shadow: 0 4px 20px rgba(64,145,108,0.4);
+    letter-spacing: 0.03em;
+  }
+  .btn-start:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 8px 30px rgba(64,145,108,0.5);
+    background: var(--green-mid);
+  }
+  .btn-start:active { transform: scale(0.98); }
+
+  .leaf-deco {
+    position: fixed;
+    pointer-events: none; z-index: 0; opacity: 0.08;
+    font-size: 120px;
+  }
+  .leaf-deco.tl { top: -20px; right: -20px; transform: rotate(30deg); }
+  .leaf-deco.br { bottom: -20px; left: -20px; transform: rotate(210deg); }
+
+  /* ── Game Screen ── */
+  #gameScreen { display: none; padding: 1.5rem 1rem 2rem; }
+
+  /* ── Header ── */
+  .game-header {
+    max-width: 900px; margin: 0 auto 2rem;
+    display: flex; align-items: center;
+    justify-content: space-between; gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .game-title {
+    font-size: 1.3rem; font-weight: 900;
+    color: var(--white);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .game-title svg { width: 24px; height: 24px; }
+
+  .progress-bar-wrap {
+    flex: 1; max-width: 300px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50px; height: 8px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; border-radius: 50px;
+    background: linear-gradient(90deg, var(--green-light), var(--amber));
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+  .progress-label {
+    font-size: 13px; font-weight: 700;
+    color: var(--green-light);
+    white-space: nowrap;
+  }
+
+  /* ── Huts Grid ── */
+  .huts-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* ── Hut Card ── */
+  .hut-card {
+    position: relative;
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius-md);
+    padding: 18px 10px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
+    text-align: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    overflow: hidden;
+    animation: cardAppear 0.4s ease backwards;
+  }
+  .hut-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(160deg, rgba(255,255,255,0.04) 0%, transparent 60%);
+    border-radius: inherit;
+  }
+
+  .hut-card.locked {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .hut-card.locked:hover { transform: none; }
+
+  .hut-card.unlocked:hover {
+    transform: translateY(-4px) scale(1.03);
+    background: rgba(116,198,157,0.15);
+    border-color: rgba(116,198,157,0.4);
+    box-shadow: var(--shadow-md), 0 0 20px rgba(116,198,157,0.15);
+  }
+
+  .hut-card.completed {
+    background: rgba(64,145,108,0.25);
+    border-color: rgba(116,198,157,0.5);
+    cursor: default;
+  }
+
+  .hut-icon {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    transition: var(--transition);
+    position: relative; z-index: 1;
+  }
+  .hut-card.completed .hut-icon {
+    background: var(--green-bright);
+    border-color: var(--green-light);
+  }
+  .hut-card.unlocked:hover .hut-icon {
+    background: rgba(116,198,157,0.2);
+  }
+
+  .hut-number {
+    font-size: 11px; font-weight: 700;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    position: relative; z-index: 1;
+  }
+  .hut-card.completed .hut-number { color: var(--green-light); }
+  .hut-card.unlocked .hut-number { color: var(--green-light); }
+
+  .hut-status-dot {
+    position: absolute; top: 8px; left: 8px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+  }
+  .hut-card.completed .hut-status-dot { background: var(--green-light); }
+  .hut-card.unlocked .hut-status-dot {
+    background: var(--amber);
+    animation: pulse 2s ease infinite;
+  }
+
+  /* ── Modal Overlay ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(10,25,15,0.75);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+  /* ── Question Card ── */
+  .question-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    width: 100%; max-width: 480px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(20px) scale(0.96);
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
+    opacity: 0;
+  }
+  .modal-overlay.active .question-card {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+
+  .qcard-header {
+    background: var(--green-dark);
+    padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .qcard-level-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 50px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
+  }
+  .qcard-level-badge.easy {
+    background: rgba(116,198,157,0.2);
+    color: var(--green-light);
+    border: 1px solid rgba(116,198,157,0.3);
+  }
+  .qcard-level-badge.hard {
+    background: rgba(233,168,40,0.2);
+    color: var(--amber);
+    border: 1px solid rgba(233,168,40,0.3);
+  }
+  .qcard-hut-info {
+    font-size: 12px; color: rgba(255,255,255,0.5);
+    letter-spacing: 0.05em;
+  }
+
+  /* Timer */
+  .timer-section {
+    background: var(--green-dark);
+    padding: 0 20px 14px;
+  }
+  .timer-top {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 6px;
+  }
+  .timer-label {
+    font-size: 11px; color: rgba(255,255,255,0.4);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .timer-count {
+    font-size: 14px; font-weight: 900;
+    color: var(--green-light);
+    font-variant-numeric: tabular-nums;
+    transition: color 0.3s ease;
+  }
+  .timer-count.warning { color: var(--amber); }
+  .timer-count.danger  { color: #ff6b6b; }
+  .timer-track {
+    height: 4px; background: rgba(255,255,255,0.1);
+    border-radius: 50px; overflow: hidden;
+  }
+  .timer-fill {
+    height: 100%; border-radius: 50px;
+    background: var(--green-light);
+    transition: width 1s linear, background 0.3s ease;
+  }
+  .timer-fill.warning { background: var(--amber); }
+  .timer-fill.danger  { background: #ff6b6b; }
+
+  /* Question Body */
+  .qcard-body { padding: 24px 24px 20px; }
+  .question-text {
+    font-size: 1.05rem; font-weight: 700;
+    color: var(--text-dark); line-height: 1.7;
+    text-align: center; margin-bottom: 20px;
+  }
+
+  /* Options */
+  .options-list {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .option-btn {
+    background: var(--cream);
+    border: 1.5px solid rgba(26,60,42,0.1);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 0.95rem; font-weight: 500;
+    color: var(--text-dark);
+    cursor: pointer; text-align: right;
+    transition: var(--transition);
+    display: flex; align-items: center; gap: 10px;
+    position: relative; overflow: hidden;
+  }
+  .option-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--green-bright);
+    opacity: 0; transition: opacity 0.2s ease;
+    z-index: 0;
+  }
+  .option-btn:hover {
+    border-color: var(--green-bright);
+    transform: translateX(-3px);
+    background: rgba(64,145,108,0.08);
+  }
+  .option-btn .opt-letter {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(26,60,42,0.08);
+    border: 1.5px solid rgba(26,60,42,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    color: var(--text-mid); flex-shrink: 0;
+    transition: var(--transition); z-index: 1;
+    position: relative;
+  }
+  .option-btn .opt-text { z-index: 1; position: relative; }
+  .option-btn:hover .opt-letter {
+    background: var(--green-bright);
+    border-color: var(--green-bright);
+    color: white;
+  }
+
+  /* Answer states */
+  .option-btn.correct {
+    background: #e8f8ef;
+    border-color: var(--green-bright);
+    animation: correctPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .option-btn.correct .opt-letter {
+    background: var(--green-bright); border-color: var(--green-bright); color: white;
+  }
+  .option-btn.wrong {
+    background: #fff0ef;
+    border-color: var(--red);
+    animation: shake 0.5s ease;
+  }
+  .option-btn.wrong .opt-letter {
+    background: var(--red); border-color: var(--red); color: white;
+  }
+  .option-btn:disabled { cursor: not-allowed; }
+
+  /* ── Result Banner ── */
+  .result-banner {
+    margin: 0 24px 20px;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 0.9rem; font-weight: 700;
+    display: none; text-align: center;
+    animation: slideDown 0.3s ease;
+  }
+  .result-banner.success {
+    background: #e8f8ef; color: #1a6d42;
+    border: 1.5px solid #74c69d;
+    display: block;
+  }
+  .result-banner.error {
+    background: #fff0ef; color: #a02020;
+    border: 1.5px solid #e07070;
+    display: block;
+  }
+
+  /* ── Win / Fail Screens ── */
+  #endScreen {
+    display: none;
+    min-height: 100vh;
+    align-items: center; justify-content: center;
+    padding: 2rem; flex-direction: column;
+    animation: fadeIn 0.6s ease;
+  }
+
+  .end-card {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: var(--radius-lg);
+    padding: 48px 40px;
+    max-width: 460px; width: 100%;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-lg);
+    animation: cardAppear 0.6s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .end-icon {
+    font-size: 64px; display: block;
+    margin-bottom: 1rem;
+    animation: bounceIn 0.8s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .end-title {
+    font-size: 2rem; font-weight: 900;
+    margin-bottom: 0.5rem;
+  }
+  .end-subtitle {
+    font-size: 1rem; color: rgba(255,255,255,0.7);
+    line-height: 1.7; margin-bottom: 2rem;
+  }
+  .gift-box {
+    background: rgba(233,168,40,0.1);
+    border: 1.5px solid rgba(233,168,40,0.3);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    margin-bottom: 2rem;
+  }
+  .gift-label {
+    font-size: 11px; color: var(--amber);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 8px; display: block;
+  }
+  .gift-text {
+    font-size: 1.2rem; font-weight: 900;
+    color: var(--amber);
+  }
+
+  .btn-restart {
+    background: rgba(255,255,255,0.1);
+    color: var(--white); border: 1.5px solid rgba(255,255,255,0.2);
+    padding: 14px 36px; border-radius: 50px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: var(--transition);
+  }
+  .btn-restart:hover {
+    background: rgba(255,255,255,0.18);
+    transform: translateY(-2px);
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes cardAppear {
+    from { opacity: 0; transform: translateY(24px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.5; transform: scale(1.3); }
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-6px); }
+    40%     { transform: translateX(6px); }
+    60%     { transform: translateX(-4px); }
+    80%     { transform: translateX(4px); }
+  }
+  @keyframes correctPop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+  @keyframes bounceIn {
+    from { transform: scale(0.3); opacity: 0; }
+    60%  { transform: scale(1.15); }
+    80%  { transform: scale(0.95); }
+    to   { transform: scale(1); opacity: 1; }
+  }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes confetti { /* placeholder */ }
+
+  /* ── Responsive ── */
+  @media (max-width: 700px) {
+    .huts-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .intro-stats { gap: 1.2rem; }
+    .qcard-body { padding: 18px 16px 16px; }
+  }
+  @media (max-width: 440px) {
+    .huts-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .game-header { flex-direction: column; align-items: flex-start; }
+    .progress-bar-wrap { max-width: 100%; width: 100%; }
+    .end-card { padding: 32px 20px; }
+  }
+</style>
+</head>
+
+<body>
+<div class="bg-layer"></div>
+<div class="bg-overlay"></div>
+
+<div class="leaf-deco tl">🌿</div>
+<div class="leaf-deco br">🌿</div>
+
+<div class="app">
+
+  <!-- ══════ INTRO SCREEN ══════ -->
+  <div id="introScreen">
+    <span class="intro-badge">🌱 تجربة تعليمية تفاعلية</span>
+    <h1 class="intro-title">مغامرة <span>الإيكو لودج</span></h1>
+    <p class="intro-desc">
+      استكشف أكواخ المنتجع الطبيعي، وأجب على أسئلة البيئة والاستدامة لتفوز بجوائز حصرية مذهلة!
+    </p>
+    <div class="intro-stats">
+      <div class="intro-stat">
+        <span class="intro-stat-num">10</span>
+        <span class="intro-stat-label">أكواخ</span>
+      </div>
+      <div class="intro-stat">
+        <span class="intro-stat-num">20</span>
+        <span class="intro-stat-label">سؤالاً</span>
+      </div>
+      <div class="intro-stat">
+        <span class="intro-stat-num">4</span>
+        <span class="intro-stat-label">جوائز</span>
+      </div>
+    </div>
+    <button class="btn-start" onclick="startGame()">ابدأ المغامرة</button>
+  </div>
+
+  <!-- ══════ GAME SCREEN ══════ -->
+  <div id="gameScreen">
+    <header class="game-header">
+      <div class="game-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2"/>
+          <path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/>
+          <path d="M2 12h20"/>
+        </svg>
+        الإيكو لودج
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="progress-label" id="progressLabel">0 / 10</div>
+    </header>
+
+    <div class="huts-grid" id="hutsGrid"></div>
+  </div>
+
+  <!-- ══════ END SCREEN ══════ -->
+  <div id="endScreen">
+    <div class="end-card" id="endCard">
+      <span class="end-icon" id="endIcon">🎉</span>
+      <h2 class="end-title" id="endTitle">مبروك!</h2>
+      <p class="end-subtitle" id="endSubtitle"></p>
+      <div class="gift-box" id="giftBox" style="display:none">
+        <span class="gift-label">هديتك الحصرية</span>
+        <div class="gift-text" id="giftText"></div>
+      </div>
+      <button class="btn-restart" onclick="restartGame()">🔄 العب مرة أخرى</button>
+    </div>
+  </div>
+
+</div><!-- .app -->
+
+<!-- ══════ MODAL ══════ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="question-card" id="questionCard">
+    <div class="qcard-header">
+      <span class="qcard-level-badge easy" id="levelBadge">⭐ سؤال سهل</span>
+      <span class="qcard-hut-info" id="hutInfo">كوخ 1</span>
+    </div>
+    <div class="timer-section">
+      <div class="timer-top">
+        <span class="timer-label">الوقت المتبقي</span>
+        <span class="timer-count" id="timerCount">40</span>
+      </div>
+      <div class="timer-track">
+        <div class="timer-fill" id="timerFill" style="width:100%"></div>
+      </div>
+    </div>
+    <div class="qcard-body">
+      <p class="question-text" id="questionText"></p>
+      <div class="options-list" id="optionsList"></div>
+    </div>
+    <div class="result-banner" id="resultBanner"></div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════ */
+const GIFTS = [
+  "🎁 ليلة إضافية في المنتجع",
+  "🏺 ساعة في ورشة الفخار",
+  "🚤 نصف ساعة جولة في بحيرة قارون",
+  "🐎 نصف ساعة جولة بالحصان"
+];
+
+const OPTION_LETTERS = ["أ","ب","ج","د"];
+
+const HUTS_DATA = [
+  {
+    easy: { q:"أي من الآتي يُعد موردًا طبيعيًا متجددًا؟", options:["الفحم","النفط","الطاقة الشمسية","الغاز الطبيعي"], correct:2 },
+    hard: { q:"ما العامل الأساسي الذي يحدد استدامة المورد الطبيعي؟", options:["سهولة استخراجه","سرعة تجددّه مقارنة بالاستهلاك","سعره في السوق","مكان وجوده"], correct:1 }
+  },
+  {
+    easy: { q:"أي نظام بيئي يتميز بتنوع حيوي عالٍ؟", options:["الصحراء","الغابات الاستوائية","المناطق القطبية","الجبال"], correct:1 },
+    hard: { q:"لماذا يُعد التنوع الحيوي مهمًا للنظام البيئي؟", options:["لأنه يزيد عدد الحيوانات فقط","لأنه يحسن التوازن والاستقرار البيئي","لأنه يقلل النباتات","لأنه يمنع الأمطار"], correct:1 }
+  },
+  {
+    easy: { q:"ما العملية التي تستخدمها النباتات لإنتاج الغذاء؟", options:["التنفس","البناء الضوئي","الهضم","التبخر"], correct:1 },
+    hard: { q:"أي عامل يؤثر بشكل مباشر على كفاءة عملية البناء الضوئي؟", options:["لون التربة","شدة الضوء","شكل الورقة","نوع الحيوان"], correct:1 }
+  },
+  {
+    easy: { q:"أي من التالي يُعد من مصادر تلوث الهواء؟", options:["الأشجار","عوادم السيارات","الأمطار","الأنهار"], correct:1 },
+    hard: { q:"ما التأثير طويل المدى لزيادة ثاني أكسيد الكربون في الغلاف الجوي؟", options:["زيادة الأمطار فقط","الاحتباس الحراري","انخفاض درجة الحرارة","زيادة الأكسجين"], correct:1 }
+  },
+  {
+    easy: { q:"أي من التالي يُعد طاقة نظيفة؟", options:["الفحم","النفط","الرياح","الديزل"], correct:2 },
+    hard: { q:"ما التحدي الرئيسي لاستخدام الطاقة المتجددة؟", options:["توفرها الدائم","تكلفتها الأولية والتخزين","عدم وجود مصادر","سهولة النقل"], correct:1 }
+  },
+  {
+    easy: { q:"أي من التالي يُعد مثالًا على التكيف؟", options:["نمو النبات","سنام الجمل لتخزين الدهون","سقوط المطر","تكوّن الصخور"], correct:1 },
+    hard: { q:"ما الهدف الأساسي من التكيف عند الكائنات الحية؟", options:["تغيير البيئة","زيادة الحجم","البقاء والتكاثر","تقليل الغذاء"], correct:2 }
+  },
+  {
+    easy: { q:"أي من التالي يُعد موردًا مائيًا عذبًا؟", options:["البحار","المحيطات","الأنهار","المياه المالحة"], correct:2 },
+    hard: { q:"ما السبب الرئيسي لندرة المياه العذبة عالميًا؟", options:["كثرتها في البحار","سوء التوزيع والاستخدام","زيادة الأمطار","قلة السكان"], correct:1 }
+  },
+  {
+    easy: { q:"أي من التالي يقلل التلوث؟", options:["حرق النفايات","إعادة التدوير","قطع الأشجار","استخدام البلاستيك"], correct:1 },
+    hard: { q:"ما الفائدة الاقتصادية لإعادة التدوير؟", options:["زيادة النفايات","تقليل تكلفة الإنتاج واستهلاك الموارد","إهدار الطاقة","تقليل الوظائف"], correct:1 }
+  },
+  {
+    easy: { q:"أي من التالي يساهم في تدهور التربة؟", options:["الزراعة المستدامة","إزالة الغابات","الري المنتظم","زراعة الأشجار"], correct:1 },
+    hard: { q:"ما العلاقة بين إزالة الغابات وتغير المناخ؟", options:["لا يوجد علاقة","تزيد امتصاص الكربون","تقلل امتصاص الكربون وتزيد الانبعاثات","تقلل الحرارة"], correct:2 }
+  },
+  {
+    easy: { q:"أي من التالي يُعد من الكوارث الطبيعية؟", options:["الزراعة","الزلازل","الصناعة","التعليم"], correct:1 },
+    hard: { q:"ما العامل الذي يزيد من تأثير الكوارث الطبيعية على الإنسان؟", options:["التخطيط الجيد","ضعف البنية التحتية","التوعية","التكنولوجيا"], correct:1 }
+  }
+];
+
+const HUT_ICONS = ["🌲","🦋","☀️","💨","🌊","🦎","💧","♻️","🌱","⛰️"];
+
+/* ══════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════ */
+let state = {
+  level: 0,
+  phase: "easy",   // "easy" | "hard"
+  timerInterval: null,
+  timeLeft: 40,
+  answered: false
+};
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+function startGame() {
+  document.getElementById("introScreen").style.display = "none";
+  document.getElementById("gameScreen").style.display = "block";
+  state.level = 0;
+  renderHuts();
+  updateProgress();
+}
+
+function restartGame() {
+  clearInterval(state.timerInterval);
+  closeModal();
+  document.getElementById("endScreen").style.display = "none";
+  document.getElementById("endScreen").style.flexDirection = "none";
+  document.getElementById("gameScreen").style.display = "block";
+  state.level = 0;
+  state.phase = "easy";
+  state.answered = false;
+  renderHuts();
+  updateProgress();
+}
+
+/* ══════════════════════════════════════════════
+   HUT GRID
+══════════════════════════════════════════════ */
+function renderHuts() {
+  const grid = document.getElementById("hutsGrid");
+  grid.innerHTML = "";
+
+  HUTS_DATA.forEach((_, i) => {
+    const card = document.createElement("div");
+    card.className = "hut-card " + getHutClass(i);
+    card.style.animationDelay = `${i * 0.05}s`;
+    card.innerHTML = `
+      <span class="hut-status-dot"></span>
+      <div class="hut-icon">${HUT_ICONS[i]}</div>
+      <span class="hut-number">كوخ ${i + 1}</span>
+    `;
+    if (i === state.level) {
+      card.addEventListener("click", () => openQuestion(i));
+    }
+    grid.appendChild(card);
+  });
+}
+
+function getHutClass(i) {
+  if (i < state.level) return "completed";
+  if (i === state.level) return "unlocked";
+  return "locked";
+}
+
+function updateProgress() {
+  const pct = (state.level / 10) * 100;
+  document.getElementById("progressFill").style.width = pct + "%";
+  document.getElementById("progressLabel").textContent = `${state.level} / 10`;
+}
+
+/* ══════════════════════════════════════════════
+   MODAL: OPEN / CLOSE
+══════════════════════════════════════════════ */
+function openQuestion(i) {
+  if (i !== state.level) return;
+  state.phase = "easy";
+  state.answered = false;
+  renderQuestion();
+  document.getElementById("modalOverlay").classList.add("active");
+}
+
+function closeModal() {
+  document.getElementById("modalOverlay").classList.remove("active");
+  clearInterval(state.timerInterval);
+}
+
+/* ══════════════════════════════════════════════
+   QUESTION RENDER
+══════════════════════════════════════════════ */
+function renderQuestion() {
+  const data = HUTS_DATA[state.level][state.phase];
+
+  // Header
+  const badge = document.getElementById("levelBadge");
+  if (state.phase === "easy") {
+    badge.className = "qcard-level-badge easy";
+    badge.textContent = "⭐ سؤال سهل";
+  } else {
+    badge.className = "qcard-level-badge hard";
+    badge.textContent = "🔥 سؤال صعب";
+  }
+  document.getElementById("hutInfo").textContent = `كوخ ${state.level + 1}`;
+
+  // Question
+  document.getElementById("questionText").textContent = data.q;
+
+  // Options
+  const list = document.getElementById("optionsList");
+  list.innerHTML = "";
+  data.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.innerHTML = `<span class="opt-letter">${OPTION_LETTERS[i]}</span><span class="opt-text">${opt}</span>`;
+    btn.addEventListener("click", () => checkAnswer(i, btn));
+    list.appendChild(btn);
+  });
+
+  // Reset result banner
+  const banner = document.getElementById("resultBanner");
+  banner.className = "result-banner";
+  banner.style.display = "none";
+
+  state.answered = false;
+  startTimer();
+}
+
+/* ══════════════════════════════════════════════
+   TIMER
+══════════════════════════════════════════════ */
+function startTimer() {
+  clearInterval(state.timerInterval);
+  state.timeLeft = 40;
+  updateTimerUI();
+
+  state.timerInterval = setInterval(() => {
+    state.timeLeft--;
+    updateTimerUI();
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timerInterval);
+      if (!state.answered) handleResult(false, null);
+    }
+  }, 1000);
+}
+
+function updateTimerUI() {
+  const t = state.timeLeft;
+  const fill = document.getElementById("timerFill");
+  const count = document.getElementById("timerCount");
+  const pct = (t / 40) * 100;
+
+  fill.style.width = pct + "%";
+  count.textContent = t;
+
+  const urgency = t <= 10 ? "danger" : t <= 20 ? "warning" : "";
+  fill.className = "timer-fill " + urgency;
+  count.className = "timer-count " + urgency;
+}
+
+/* ══════════════════════════════════════════════
+   ANSWER LOGIC
+══════════════════════════════════════════════ */
+function checkAnswer(idx, btn) {
+  if (state.answered) return;
+  state.answered = true;
+  clearInterval(state.timerInterval);
+
+  const correctIdx = HUTS_DATA[state.level][state.phase].correct;
+  const isCorrect = idx === correctIdx;
+
+  // Disable all buttons
+  const allBtns = document.querySelectorAll(".option-btn");
+  allBtns.forEach((b, i) => {
+    b.disabled = true;
+    if (i === correctIdx) b.classList.add("correct");
+  });
+  if (!isCorrect) btn.classList.add("wrong");
+
+  handleResult(isCorrect, btn);
+}
+
+function handleResult(isCorrect, btn) {
+  state.answered = true;
+
+  if (isCorrect) {
+    showBanner(true, "✅ إجابة صحيحة! أحسنت");
+    // Show correct on all just in case (timeout)
+    const correctIdx = HUTS_DATA[state.level][state.phase].correct;
+    document.querySelectorAll(".option-btn")[correctIdx]?.classList.add("correct");
+    setTimeout(() => advanceQuestion(), 900);
+  } else {
+    // If timed out, highlight correct answer
+    if (!btn) {
+      const correctIdx = HUTS_DATA[state.level][state.phase].correct;
+      const allBtns = document.querySelectorAll(".option-btn");
+      allBtns.forEach(b => b.disabled = true);
+      allBtns[correctIdx]?.classList.add("correct");
+    }
+    showBanner(false, "❌ إجابة خاطئة!");
+    setTimeout(() => onFailure(), 1200);
+  }
+}
+
+function showBanner(isSuccess, msg) {
+  const banner = document.getElementById("resultBanner");
+  banner.className = "result-banner " + (isSuccess ? "success" : "error");
+  banner.textContent = msg;
+  banner.style.display = "block";
+}
+
+/* ══════════════════════════════════════════════
+   GAME FLOW
+══════════════════════════════════════════════ */
+function advanceQuestion() {
+  if (state.phase === "easy") {
+    // Move to hard question
+    state.phase = "hard";
+    state.answered = false;
+    renderQuestion();
+  } else {
+    // Completed this hut
+    state.level++;
+    closeModal();
+    renderHuts();
+    updateProgress();
+
+    if (state.level >= 10) {
+      // WIN!
+      setTimeout(() => showWinScreen(), 300);
+    }
+  }
+}
+
+function onFailure() {
+  closeModal();
+
+  if (state.level >= 5) {
+    // Consolation reward (hut 6+)
+    showEndScreen({
+      icon: "🐎",
+      title: "لم تكمل المشوار!",
+      subtitle: "وصلت إلى كوخ " + (state.level + 1) + " لكنك لم تتمكن من إكماله. جائزة تشجيعية لك!",
+      gift: "📸 صور تذكارية مع الخيول 🐎"
+    });
+  } else {
+    // Restart
+    showEndScreen({
+      icon: "😔",
+      title: "حظ أوفر!",
+      subtitle: "لم تتجاوز الكوخ رقم " + (state.level + 1) + ". لا تستسلم وحاول مرة أخرى!",
+      gift: null
+    });
+  }
+}
+
+function showWinScreen() {
+  const gift = GIFTS[Math.floor(Math.random() * GIFTS.length)];
+  showEndScreen({
+    icon: "🎉",
+    title: "مبروك! أتممت الرحلة!",
+    subtitle: "أجبت على جميع الأسئلة بنجاح. أنت بطل الإيكو لودج!",
+    gift
+  });
+}
+
+function showEndScreen({ icon, title, subtitle, gift }) {
+  document.getElementById("gameScreen").style.display = "none";
+
+  const screen = document.getElementById("endScreen");
+  screen.style.display = "flex";
+  screen.style.flexDirection = "column";
+
+  document.getElementById("endIcon").textContent = icon;
+  document.getElementById("endTitle").textContent = title;
+  document.getElementById("endSubtitle").textContent = subtitle;
+
+  const giftBox = document.getElementById("giftBox");
+  if (gift) {
+    document.getElementById("giftText").textContent = gift;
+    giftBox.style.display = "block";
+  } else {
+    giftBox.style.display = "none";
+  }
+}
+</script>
+</body>
+</html>
